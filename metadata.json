@@ -1,0 +1,6 @@
+{
+  "name": "Bank of Travel",
+  "description": "Bank of Travel — пасандози дастаҷамъона барои сафар ба Гурҷистон (Georgia Trip 30,000 TJS goal, streaks, leaderboard, anti-cheat & travel planner)",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
