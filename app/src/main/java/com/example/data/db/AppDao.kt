@@ -19,6 +19,9 @@ interface UserDao {
     @Query("SELECT * FROM users")
     fun getAllUsers(): Flow<List<User>>
 
+    @Query("SELECT * FROM users")
+    suspend fun getAllUsersSync(): List<User>
+
     @Query("SELECT * FROM users WHERE id = :userId LIMIT 1")
     suspend fun getUserById(userId: String): User?
 
@@ -76,6 +79,9 @@ interface TransactionDao {
     @Query("DELETE FROM transactions WHERE id = :id")
     suspend fun deleteById(id: Long)
 
+    @Query("DELETE FROM transactions")
+    suspend fun clearAllTransactions()
+
     @Query("SELECT SUM(amount) FROM transactions")
     fun getTotalSaved(): Flow<Double?>
 }
@@ -111,4 +117,7 @@ interface ChallengeDao {
 
     @Update
     suspend fun updateWeek(week: ChallengeWeek)
+
+    @Query("UPDATE challenge_weeks SET savedAmount = 0.0, isCompleted = 0")
+    suspend fun resetChallengeWeeks()
 }

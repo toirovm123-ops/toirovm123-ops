@@ -38,12 +38,20 @@ fun ProfileScreen(
     onNavigate: (AppScreen) -> Unit,
     onSwitchUser: (String) -> Unit,
     onUpdateUser: (String, String) -> Unit,
+    onUpdateSecurity: (password: String, pin: String) -> Unit = { _, _ -> },
+    onLinkGoogle: (String) -> Unit = {},
     onLogout: () -> Unit
 ) {
     var showEditProfileDialog by remember { mutableStateOf(false) }
     var editName by remember { mutableStateOf(currentUser?.name ?: "") }
     var selectedAvatarPreset by remember { mutableStateOf(currentUser?.avatarValue ?: "mustafa") }
     var showSwitchUserDialog by remember { mutableStateOf(false) }
+    var showSecurityDialog by remember { mutableStateOf(false) }
+    var showGoogleLinkDialog by remember { mutableStateOf(false) }
+
+    var newPasswordInput by remember { mutableStateOf(currentUser?.passwordHash ?: "123456") }
+    var newPinInput by remember { mutableStateOf(currentUser?.pinCode ?: "1234") }
+    var googleEmailInput by remember { mutableStateOf(currentUser?.googleEmail?.ifEmpty { "toirovm123@gmail.com" } ?: "toirovm123@gmail.com") }
 
     val avatarPresets = listOf("mustafa", "ayub", "muhammad", "alex", "david")
 
@@ -190,6 +198,189 @@ fun ProfileScreen(
                 }
             }
 
+            // EXCLUSIVE: Georgian Boarding Pass Ticket (Корти парвоз ба Гурҷистон)
+            item {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onNavigate(AppScreen.TRAVEL_PLAN) },
+                    shape = RoundedCornerShape(18.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF0F2231)),
+                    border = CardDefaults.outlinedCardBorder().copy(
+                        brush = Brush.horizontalGradient(
+                            listOf(Color(0xFF00E5A3), Color(0xFF00C9FF))
+                        )
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        // Header
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Text("✈️", fontSize = 16.sp)
+                                Text(
+                                    text = "GEORGIA TRIP 2026",
+                                    color = MintNeon,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    letterSpacing = 1.sp
+                                )
+                            }
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(Color(0x3300E5A3))
+                                    .padding(horizontal = 8.dp, vertical = 3.dp)
+                            ) {
+                                Text(
+                                    text = "VIP BOARDING PASS",
+                                    color = MintNeon,
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+
+                        // Flight Route
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
+                                Text("DYU", color = TextPrimary, fontSize = 24.sp, fontWeight = FontWeight.Black)
+                                Text("Душанбе", color = TextSecondary, fontSize = 11.sp)
+                            }
+
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text("ПАРВОЗ", color = CyanNeon, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                Text("━━━━ ✈️ ━━━━", color = TextMuted, fontSize = 12.sp)
+                                Text("Direct Flight", color = TextMuted, fontSize = 9.sp)
+                            }
+
+                            Column(horizontalAlignment = Alignment.End) {
+                                Text("TBS", color = MintNeon, fontSize = 24.sp, fontWeight = FontWeight.Black)
+                                Text("Тбилиси 🇬🇪", color = TextSecondary, fontSize = 11.sp)
+                            }
+                        }
+
+                        HorizontalDivider(color = Color(0xFF1E3A52))
+
+                        // Details Row
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Column {
+                                Text("МУСОФИР (PASSENGER)", color = TextMuted, fontSize = 9.sp)
+                                Text(currentUser?.name?.uppercase() ?: "MUSTAFO", color = TextPrimary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            }
+                            Column {
+                                Text("САНА (DATE)", color = TextMuted, fontSize = 9.sp)
+                                Text("15 AUG 2026", color = TextPrimary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            }
+                            Column {
+                                Text("ҶОЙ (SEAT)", color = TextMuted, fontSize = 9.sp)
+                                Text("12A (VIP)", color = GoldMedal, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            }
+                            Column {
+                                Text("ҲОЛАТ", color = TextMuted, fontSize = 9.sp)
+                                Text("ТАЪМИН ✅", color = MintNeon, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+
+                        // Barcode Representation
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(26.dp)
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(Color(0xFF08141F)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "||||| | |||| ||| ||||||| | ||||| |||| || |||||||| |||||",
+                                color = Color(0xFF38688D),
+                                letterSpacing = 3.sp,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+            }
+
+            // Google Account Connection Card
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(18.dp),
+                    colors = CardDefaults.cardColors(containerColor = DarkCard),
+                    border = CardDefaults.outlinedCardBorder().copy(brush = Brush.linearGradient(listOf(DarkCardBorder, DarkCardBorder)))
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(14.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(42.dp)
+                                .clip(CircleShape)
+                                .background(Color.White),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("G", color = Color(0xFF4285F4), fontSize = 20.sp, fontWeight = FontWeight.Black)
+                        }
+
+                        Column(modifier = Modifier.weight(1f)) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Text("Google аккаунт", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(6.dp))
+                                        .background(Color(0xFF133629))
+                                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                                ) {
+                                    Text("Пайваст ✅", color = MintNeon, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                }
+                            }
+                            Text(
+                                text = if (currentUser?.googleEmail.isNullOrBlank()) "toirovm123@gmail.com" else currentUser?.googleEmail ?: "",
+                                color = TextMuted,
+                                fontSize = 12.sp
+                            )
+                        }
+
+                        OutlinedButton(
+                            onClick = { showGoogleLinkDialog = true },
+                            shape = RoundedCornerShape(10.dp),
+                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = MintNeon),
+                            border = ButtonDefaults.outlinedButtonBorder().copy(brush = Brush.linearGradient(listOf(DarkCardBorder, DarkCardBorder)))
+                        ) {
+                            Text("Иваз", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+            }
+
             // Achievements Preview
             item {
                 Card(
@@ -238,6 +429,19 @@ fun ProfileScreen(
                     border = CardDefaults.outlinedCardBorder().copy(brush = Brush.linearGradient(listOf(DarkCardBorder, DarkCardBorder)))
                 ) {
                     Column(modifier = Modifier.fillMaxWidth()) {
+                        ProfileMenuItem(
+                            icon = Icons.Default.Lock,
+                            title = "Амнияти аккаунт (Парол ва PIN)",
+                            subtitle = "Танзими рамзи 4-рақама ва парол",
+                            onClick = {
+                                newPasswordInput = currentUser?.passwordHash ?: "123456"
+                                newPinInput = currentUser?.pinCode ?: "1234"
+                                showSecurityDialog = true
+                            },
+                            tag = "menu_security"
+                        )
+                        HorizontalDivider(color = DarkCardBorder)
+
                         ProfileMenuItem(
                             icon = Icons.Default.SwitchAccount,
                             title = "Иваз кардани иштирокчӣ (Switch User)",
@@ -295,6 +499,120 @@ fun ProfileScreen(
                 }
             }
         }
+    }
+
+    // Security & PIN Dialog
+    if (showSecurityDialog) {
+        AlertDialog(
+            onDismissRequest = { showSecurityDialog = false },
+            containerColor = DarkSurface,
+            title = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(Icons.Default.Lock, contentDescription = "Security", tint = MintNeon)
+                    Text("Амнияти аккаунт", color = TextPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                }
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                    Text(
+                        text = "Парол ва PIN-коди 4-рақамаи худро барои воридшавии зуд нав кунед:",
+                        color = TextSecondary,
+                        fontSize = 12.sp
+                    )
+
+                    OutlinedTextField(
+                        value = newPasswordInput,
+                        onValueChange = { newPasswordInput = it },
+                        label = { Text("Пароли нав") },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MintNeon,
+                            unfocusedBorderColor = DarkCardBorder,
+                            focusedContainerColor = DarkBg,
+                            unfocusedContainerColor = DarkBg
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    OutlinedTextField(
+                        value = newPinInput,
+                        onValueChange = { if (it.length <= 4 && it.all { c -> c.isDigit() }) newPinInput = it },
+                        label = { Text("PIN-код (4 рақам)") },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = CyanNeon,
+                            unfocusedBorderColor = DarkCardBorder,
+                            focusedContainerColor = DarkBg,
+                            unfocusedContainerColor = DarkBg
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        onUpdateSecurity(newPasswordInput, newPinInput)
+                        showSecurityDialog = false
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MintNeon)
+                ) {
+                    Text("Сабт кардан", color = Color.Black, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showSecurityDialog = false }) {
+                    Text("Бекор", color = TextSecondary)
+                }
+            }
+        )
+    }
+
+    // Google Link Dialog
+    if (showGoogleLinkDialog) {
+        AlertDialog(
+            onDismissRequest = { showGoogleLinkDialog = false },
+            containerColor = DarkSurface,
+            title = {
+                Text("Пайвасти Google аккаунт", color = TextPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text("Почтаи Google Gmail-и худро ворид кунед:", color = TextSecondary, fontSize = 13.sp)
+                    OutlinedTextField(
+                        value = googleEmailInput,
+                        onValueChange = { googleEmailInput = it },
+                        label = { Text("Google Gmail") },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MintNeon,
+                            unfocusedBorderColor = DarkCardBorder,
+                            focusedContainerColor = DarkBg,
+                            unfocusedContainerColor = DarkBg
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        if (googleEmailInput.isNotBlank()) {
+                            onLinkGoogle(googleEmailInput.trim())
+                        }
+                        showGoogleLinkDialog = false
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MintNeon)
+                ) {
+                    Text("Пайваст кардан", color = Color.Black, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showGoogleLinkDialog = false }) {
+                    Text("Бекор", color = TextSecondary)
+                }
+            }
+        )
     }
 
     // Edit Name & Avatar Dialog

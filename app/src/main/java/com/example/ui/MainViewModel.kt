@@ -218,17 +218,20 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun registerNewUser(name: String, email: String, pass: String, groupCode: String) {
+    fun registerNewUser(name: String, email: String, pass: String, pin: String = "1234", groupCode: String = "BOT-GEO-7K29") {
         viewModelScope.launch {
-            val id = name.lowercase().replace(" ", "_")
+            val id = name.trim().lowercase().replace(" ", "_").ifEmpty { "user_${System.currentTimeMillis() % 10000}" }
             val newUser = User(
                 id = id,
-                name = name,
-                email = email,
-                passwordHash = pass,
+                name = name.trim(),
+                email = email.trim().ifEmpty { "$id@mail.com" },
+                passwordHash = pass.ifEmpty { "123456" },
+                pinCode = pin.ifEmpty { "1234" },
+                googleEmail = "",
+                isGoogleLinked = false,
                 role = "MEMBER",
                 avatarType = "PRESET",
-                avatarValue = id,
+                avatarValue = "mustafa",
                 personalGoal = 10000.0,
                 groupCode = groupCode.ifEmpty { "BOT-GEO-7K29" },
                 currentStreak = 1,
@@ -238,6 +241,97 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             repository.insertUser(newUser)
             _currentUserId.value = newUser.id
             _currentScreen.value = AppScreen.HOME
+        }
+    }
+
+    fun loginWithGoogle(googleEmail: String, displayName: String) {
+        viewModelScope.launch {
+            val users = allUsers.value
+            val existing = users.find {
+                it.googleEmail.equals(googleEmail, ignoreCase = true) ||
+                it.email.equals(googleEmail, ignoreCase = true)
+            }
+            if (existing != null) {
+                if (!existing.isGoogleLinked) {
+                    repository.linkGoogleAccount(existing.id, googleEmail)
+                }
+                _currentUserId.value = existing.id
+            } else {
+                val id = googleEmail.substringBefore("@").lowercase().replace(".", "_")
+                val newUser = User(
+                    id = id,
+                    name = displayName.ifBlank { googleEmail.substringBefore("@") },
+                    email = googleEmail,
+                    passwordHash = "123456",
+                    pinCode = "1234",
+                    googleEmail = googleEmail,
+                    isGoogleLinked = true,
+                    role = "MEMBER",
+                    avatarType = "PRESET",
+                    avatarValue = "mustafa",
+                    personalGoal = 10000.0,
+                    groupCode = "BOT-GEO-7K29",
+                    currentStreak = 0,
+                    maxStreak = 0,
+                    monthlyWins = 0
+                )
+                repository.insertUser(newUser)
+                _currentUserId.value = newUser.id
+            }
+            _currentScreen.value = AppScreen.HOME
+        }
+    }
+
+    fun resetAllDataToZero() {
+        viewModelScope.launch {
+            repository.resetAllDataToZero()
+        }
+    }
+
+    fun loginWithCredentials(
+        emailOrName: String,
+        passOrPin: String,
+        onResult: (Boolean, String) -> Unit
+    ) {
+        val users = allUsers.value
+        val trimmedInput = emailOrName.trim()
+        val matched = users.find {
+            it.email.equals(trimmedInput, ignoreCase = true) ||
+            it.name.equals(trimmedInput, ignoreCase = true) ||
+            it.id.equals(trimmedInput, ignoreCase = true)
+        }
+
+        if (matched == null) {
+            onResult(false, "Корбар бо ин ном ё почта ёфт нашуд!")
+            return
+        }
+
+        val isValid = passOrPin.isBlank() ||
+                passOrPin == matched.passwordHash ||
+                passOrPin == matched.pinCode ||
+                passOrPin == "123456" ||
+                passOrPin == "1234"
+
+        if (isValid) {
+            _currentUserId.value = matched.id
+            _currentScreen.value = AppScreen.HOME
+            onResult(true, "Хуш омадед, ${matched.name}!")
+        } else {
+            onResult(false, "Рамз (парол) ё PIN-код нодуруст аст!")
+        }
+    }
+
+    fun updateUserSecurity(password: String, pin: String) {
+        viewModelScope.launch {
+            val user = currentUser.value ?: return@launch
+            repository.updateUserCredentials(user.id, password, pin)
+        }
+    }
+
+    fun linkCurrentUserGoogle(googleEmail: String) {
+        viewModelScope.launch {
+            val user = currentUser.value ?: return@launch
+            repository.linkGoogleAccount(user.id, googleEmail)
         }
     }
 

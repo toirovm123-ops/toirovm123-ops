@@ -9,6 +9,9 @@ data class User(
     val name: String,
     val email: String,
     val passwordHash: String = "123456",
+    val pinCode: String = "1234",
+    val googleEmail: String = "",
+    val isGoogleLinked: Boolean = false,
     val role: String = "MEMBER", // "ADMIN" or "MEMBER"
     val avatarType: String = "PRESET", // "PRESET" or "CUSTOM_URI"
     val avatarValue: String = "mustafa", // preset name or custom image uri

@@ -93,7 +93,10 @@ fun BankOfTravelApp(viewModel: MainViewModel) {
                 AppScreen.WELCOME -> {
                     WelcomeScreen(
                         onGetStarted = { viewModel.navigateTo(AppScreen.HOME) },
-                        onLoginClick = { viewModel.navigateTo(AppScreen.LOGIN) }
+                        onLoginClick = { viewModel.navigateTo(AppScreen.LOGIN) },
+                        onGoogleLogin = { email, name ->
+                            viewModel.loginWithGoogle(email, name)
+                        }
                     )
                 }
                 AppScreen.LOGIN -> {
@@ -103,14 +106,23 @@ fun BankOfTravelApp(viewModel: MainViewModel) {
                             viewModel.switchUser(userId)
                             viewModel.navigateTo(AppScreen.HOME)
                         },
+                        onGoogleLogin = { email, name ->
+                            viewModel.loginWithGoogle(email, name)
+                        },
+                        onValidateCredentials = { input, pass, cb ->
+                            viewModel.loginWithCredentials(input, pass, cb)
+                        },
                         onNavigateRegister = { viewModel.navigateTo(AppScreen.REGISTER) },
                         onBack = { viewModel.navigateTo(AppScreen.HOME) }
                     )
                 }
                 AppScreen.REGISTER -> {
                     RegisterScreen(
-                        onRegisterSuccess = { name, email, pass, code ->
-                            viewModel.registerNewUser(name, email, pass, code)
+                        onRegisterSuccess = { name, email, pass, pin, code ->
+                            viewModel.registerNewUser(name, email, pass, pin, code)
+                        },
+                        onGoogleLogin = { email, name ->
+                            viewModel.loginWithGoogle(email, name)
                         },
                         onBack = { viewModel.navigateTo(AppScreen.LOGIN) }
                     )
@@ -184,6 +196,12 @@ fun BankOfTravelApp(viewModel: MainViewModel) {
                         onUpdateUser = { name, avatar ->
                             viewModel.updateUser(name, avatar)
                         },
+                        onUpdateSecurity = { pass, pin ->
+                            viewModel.updateUserSecurity(pass, pin)
+                        },
+                        onLinkGoogle = { email ->
+                            viewModel.linkCurrentUserGoogle(email)
+                        },
                         onLogout = { viewModel.navigateTo(AppScreen.LOGIN) }
                     )
                 }
@@ -236,6 +254,7 @@ fun BankOfTravelApp(viewModel: MainViewModel) {
                         onBack = { viewModel.navigateTo(AppScreen.HOME) },
                         onSetCompletedMode = { viewModel.setCompletedMode(it) },
                         onSetStreakMode = { viewModel.setStreakMode(it) },
+                        onResetAllData = { viewModel.resetAllDataToZero() },
                         onNavigate = { viewModel.navigateTo(it) }
                     )
                 }

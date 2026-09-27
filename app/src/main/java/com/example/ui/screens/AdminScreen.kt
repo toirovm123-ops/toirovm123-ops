@@ -41,8 +41,10 @@ fun AdminScreen(
     onBack: () -> Unit,
     onSetCompletedMode: (Boolean) -> Unit,
     onSetStreakMode: (String) -> Unit,
+    onResetAllData: () -> Unit = {},
     onNavigate: (AppScreen) -> Unit
 ) {
+    var showResetConfirmDialog by remember { mutableStateOf(false) }
     val isCompleted = groupInfo?.isCompleted == true
     val currentStreakCalc = groupInfo?.streakCalculation ?: "DAILY"
 
@@ -229,6 +231,49 @@ fun AdminScreen(
                 }
             }
 
+            // Reset Data & Start Fresh from 0 TJS Card
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(18.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF2A1414)),
+                    border = CardDefaults.outlinedCardBorder().copy(brush = Brush.linearGradient(listOf(DangerCoral, DarkElevated)))
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(Icons.Default.Refresh, contentDescription = "Reset", tint = DangerCoral)
+                            Text(
+                                text = "Оғози нав: Ба 0 TJS баргардонидан",
+                                color = TextPrimary,
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        Text(
+                            text = "Ҳамаи маблағҳои сохта ва пасандозҳоро пурра пок намуда, ҳамаро ба 0 TJS мебарад, то ҳисоби воқеӣ сар шавад.",
+                            color = TextSecondary,
+                            fontSize = 12.sp
+                        )
+                        Button(
+                            onClick = { showResetConfirmDialog = true },
+                            colors = ButtonDefaults.buttonColors(containerColor = DangerCoral),
+                            shape = RoundedCornerShape(10.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Тоза кардан ва сар кардан аз 0 TJS", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                        }
+                    }
+                }
+            }
+
             // Anti-Cheat Activity Log Section (Requirement 4)
             item {
                 Row(
@@ -308,5 +353,38 @@ fun AdminScreen(
                 }
             }
         }
+    }
+
+    if (showResetConfirmDialog) {
+        AlertDialog(
+            onDismissRequest = { showResetConfirmDialog = false },
+            containerColor = DarkSurface,
+            title = {
+                Text("⚠️ Оғози нав аз 0 TJS", color = DangerCoral, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            },
+            text = {
+                Text(
+                    text = "Оё мутмаин ҳастед, ки ҳамаи маблағҳо ва сабтҳоро тоза карда, ҳисобро аз 0.00 TJS аз нав сар кунед?",
+                    color = TextPrimary,
+                    fontSize = 13.sp
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        onResetAllData()
+                        showResetConfirmDialog = false
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = DangerCoral)
+                ) {
+                    Text("Бале, аз 0 сар шавад", color = Color.White, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showResetConfirmDialog = false }) {
+                    Text("Бекор кардан", color = TextSecondary)
+                }
+            }
+        )
     }
 }
